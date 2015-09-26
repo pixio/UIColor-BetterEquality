@@ -27,38 +27,41 @@
 #import "UIColor+BetterEquality.h"
 
 #define COLOR_COMP_EPS (0.5/255)
-#define cmpComp(a, b) (fabs(a - b) < COLOR_COMP_EPS)
+#define cmpComp(a, b) (fabs((a) - (b)) < COLOR_COMP_EPS)
 
 @implementation UIColor (BetterEquality)
 
 - (BOOL)isEqualToColor:(UIColor *)otherColor 
-{
-    CGColorSpaceRef colorSpaceRGB = CGColorSpaceCreateDeviceRGB();
-    
-    const CGFloat *(^getComponents)(UIColor*) = ^(UIColor *color) {
-        if(CGColorSpaceGetModel(CGColorGetColorSpace(color.CGColor)) == kCGColorSpaceModelMonochrome) {
+{    
+    const BOOL (^getComponents)(UIColor*, CGFloat*) = ^BOOL(UIColor *color, CGFloat* array) {
+        CGColorSpaceModel model = CGColorSpaceGetModel(CGColorGetColorSpace([color CGColor]));
+        if (model == kCGColorSpaceModelMonochrome) {
             const CGFloat *oldComponents = CGColorGetComponents(color.CGColor);
-            CGFloat components[4] = {oldComponents[0], oldComponents[0], oldComponents[0], oldComponents[1]};
-            CGColorRef colorRef = CGColorCreate( colorSpaceRGB, components );
-            
-            UIColor * rgbColor = [UIColor colorWithCGColor:colorRef];
-            CGColorRelease(colorRef);
-            return CGColorGetComponents(rgbColor.CGColor);            
+            array[0] = array[1] = array[2] = oldComponents[0];
+            array[3] = oldComponents[1];
+        } else if (model == kCGColorSpaceModelRGB) {
+            const CGFloat* oldComponents = CGColorGetComponents(color.CGColor);
+            for (int i = 0; i < 4; i++) {
+                array[i] = oldComponents[i];
+            }
         } else {
-            return CGColorGetComponents(color.CGColor);
+            return FALSE;
         }
+        return TRUE;
     };
     
-    const CGFloat * myComponents = getComponents(self);
-    const CGFloat * otherComponents = getComponents(otherColor);
+    CGFloat myComponents[4];
+    BOOL iHaveComponents = getComponents(self, myComponents);
+    CGFloat otherComponents[4];
+    BOOL theyHaveComponents = getComponents(otherColor, otherComponents);
     
-    BOOL equality = myComponents && otherComponents &&
+    BOOL equality = iHaveComponents && theyHaveComponents &&
     (   cmpComp(myComponents[0], otherComponents[0])
      && cmpComp(myComponents[1], otherComponents[1])
      && cmpComp(myComponents[2], otherComponents[2]));
     
 //    NSLog(@"Comparing these colors\na:%1.6f, %1.6f, %1.6f\nb:%1.6f, %1.6f, %1.6f\nVerdict:         %@", myComponents[0], myComponents[1], myComponents[2], otherComponents[0], otherComponents[1], otherComponents[2], equality ? @"Equal" : @"Unequal");
-    
+        
     return equality;
 }
 

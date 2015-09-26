@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = "UIColor-BetterEquality"
-  s.version          = "0.1.4"
+  s.version          = "0.1.5"
   s.summary          = "Changes the behavior of isEqual on UIColor to better capture useful equality."
   s.description      = <<-DESC
                        Performs a component-wise comparison of colors for equality.
