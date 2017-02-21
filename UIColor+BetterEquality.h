@@ -28,6 +28,6 @@
 
 @interface UIColor (BetterEquality)
 
-- (BOOL)isEqualToColor:(UIColor *)otherColor;
+- (BOOL)isEqualToColor:(nullable UIColor *)otherColor;
 
 @end
